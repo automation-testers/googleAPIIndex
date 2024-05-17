@@ -1,8 +1,15 @@
+<<<<<<< HEAD
 from tqdm import tqdm
 import asyncio
 import aiohttp
 import os
 import pandas as pd
+=======
+import os
+import asyncio
+import aiohttp
+import json
+>>>>>>> c4854f38ceaacc162530ac3bd85ba4d41afc69b5
 from oauth2client.service_account import ServiceAccountCredentials
 import json
 
@@ -60,6 +67,7 @@ def setup_http_client(json_key_file):
     return token
 
 def main():
+<<<<<<< HEAD
     # Check if CSV file exists
     if not os.path.exists("data.csv"):
         print("Error: data.csv file not found!")
@@ -77,6 +85,24 @@ def main():
     except Exception as e:
         print(f"Error reading data.csv: {e}")
         return
+=======
+    # Get parameters from environment variables
+    try:
+        num_accounts = int(os.getenv('NUM_ACCOUNTS', '1'))
+    except ValueError:
+        print("Invalid number of accounts. Please enter a valid number.")
+        return
+    
+    url = os.getenv('URL')
+    if not url:
+        print("Error: URL parameter not provided!")
+        return
+
+    urls_per_account = int(os.getenv('URLS_PER_ACCOUNT', '200'))
+
+    # Generate the list of URLs to be processed
+    all_urls = [url] * (num_accounts * urls_per_account)
+>>>>>>> c4854f38ceaacc162530ac3bd85ba4d41afc69b5
 
     # Process URLs for each account
     for i in range(num_accounts):
