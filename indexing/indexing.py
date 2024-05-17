@@ -1,17 +1,16 @@
-from tqdm import tqdm
-import asyncio
-import aiohttp
 import os
 import pandas as pd
-from oauth2client.service_account import ServiceAccountCredentials
 import json
+import asyncio
+import aiohttp
+from oauth2client.service_account import ServiceAccountCredentials
+from aiohttp.client_exceptions import ServerDisconnectedError
+from tqdm import tqdm
 
 # Constants
 SCOPES = ["https://www.googleapis.com/auth/indexing"]
 ENDPOINT = "https://indexing.googleapis.com/v3/urlNotifications:publish"
 URLS_PER_ACCOUNT = 200
-
-from aiohttp.client_exceptions import ServerDisconnectedError
 
 async def send_url(session, http, url):
     content = {
@@ -60,22 +59,26 @@ def setup_http_client(json_key_file):
     return token
 
 def main():
-    # Check if CSV file exists
-    if not os.path.exists("data.csv"):
-        print("Error: data.csv file not found!")
+    # Get parameters from environment variables
+    try:
+        num_accounts = int(os.getenv('NUM_ACCOUNTS', '1'))
+    except ValueError:
+        print("Invalid number of accounts. Please enter a valid number.")
         return
+    
+    csv_file = os.getenv('CSV_FILE', 'data.csv')
+    urls_per_account = int(os.getenv('URLS_PER_ACCOUNT', '200'))
 
-    # Ask user for number of accounts
-    num_accounts = int(input("How many accounts have you created (1-5)? "))
-    if not 1 <= num_accounts <= 5:
-        print("Invalid number of accounts. Please enter a number between 1 and 5.")
+    # Check if CSV file exists
+    if not os.path.exists(csv_file):
+        print(f"Error: {csv_file} file not found!")
         return
 
     # Read all URLs from CSV
     try:
-        all_urls = pd.read_csv("data.csv")["URL"].tolist()
+        all_urls = pd.read_csv(csv_file)["URL"].tolist()
     except Exception as e:
-        print(f"Error reading data.csv: {e}")
+        print(f"Error reading {csv_file}: {e}")
         return
 
     # Process URLs for each account
@@ -88,10 +91,10 @@ def main():
             print(f"Error: {json_key_file} not found!")
             continue
 
-        start_index = i * URLS_PER_ACCOUNT
-        end_index = start_index + URLS_PER_ACCOUNT
+        start_index = i * urls_per_account
+        end_index = start_index + urls_per_account
         urls_for_account = all_urls[start_index:end_index]
-        
+
         http = setup_http_client(json_key_file)
         asyncio.run(indexURL(http, urls_for_account))
 
