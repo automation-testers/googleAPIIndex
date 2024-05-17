@@ -10,7 +10,6 @@ from tqdm import tqdm
 # Constants
 SCOPES = ["https://www.googleapis.com/auth/indexing"]
 ENDPOINT = "https://indexing.googleapis.com/v3/urlNotifications:publish"
-URLS_PER_ACCOUNT = 200
 
 async def send_url(session, http, url):
     content = {
